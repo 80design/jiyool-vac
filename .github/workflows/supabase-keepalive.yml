@@ -1,0 +1,25 @@
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: "10 0 * * 0,3"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query vax_records
+        run: |
+          URL="https://rnarvhqlozqpyhzdjpjb.supabase.co/rest/v1/vax_records?select=item_key&limit=1"
+          KEY="sb_publishable_Ci91dOGSaMeZApQQYmusNA_CLWIUZR1"
+          CODE=$(curl -s -o /tmp/out.txt -w "%{http_code}" \
+            -H "apikey: $KEY" \
+            -H "Authorization: Bearer $KEY" \
+            "$URL")
+          echo "HTTP $CODE"
+          cat /tmp/out.txt
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Supabase ping failed with HTTP $CODE"
+            exit 1
+          fi
